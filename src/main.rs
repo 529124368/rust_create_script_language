@@ -3,7 +3,7 @@ use nom::{
     branch::{alt, permutation},
     bytes::complete::{is_not, tag, take, take_till, take_until, take_while, take_while_m_n},
     character::complete::{
-        alpha1, alphanumeric1, anychar, char, digit1, multispace0, multispace1, one_of,
+        alpha1, alphanumeric1, anychar, char, digit0, digit1, multispace0, multispace1, one_of,
     },
     combinator::recognize,
     multi::{many0, separated_list0, separated_list1},
@@ -15,7 +15,7 @@ fn main() {
     let programs = r#"
     fn test(a,b)
     {
-        println(12);
+        println(12321);
     }
     "#;
     let (a, b) = to_ast(programs).unwrap();
@@ -45,14 +45,9 @@ fn block_get(input: &str) -> IResult<&str, ast::Expression> {
 /// block_expression <- "{" line* "}";
 fn println_get(input: &str) -> IResult<&str, ast::Expression> {
     let (input, _) = terminated(tag("println"), multispace0)(input)?;
-    let (input, _) = terminated(
-        terminated(
-            delimited(tag("("), del_space(digit1), tag(")")),
-            multispace0,
-        ),
-        tag(";"),
-    )(input)?;
-    Ok((input, ast::ast_println(input)))
+    let (input, d) = terminated(delimited(tag("("), del_space(digit1), tag(")")), tag(";"))(input)?;
+    println!("{:?}#{:?}", input, d);
+    Ok((input, ast::ast_println(d)))
 }
 
 //字符串转换成AST(抽象语法树)
@@ -74,7 +69,7 @@ fn function_definition(input: &str) -> IResult<&str, ast::Program> {
         alt((alpha1, tag("_"))),
         many0(alt((alphanumeric1, tag("_")))),
     ))(input)?;
-    let (input, b) = delimited(
+    let (input, b) = del_space(delimited(
         tag("("),
         separated_list0(
             delimited(multispace0, tag(","), multispace0),
@@ -84,9 +79,9 @@ fn function_definition(input: &str) -> IResult<&str, ast::Program> {
             )),
         ),
         tag(")"),
-    )(args)?;
-    println!("{:?}->{:?}->{:?}", input, b, name);
-    Ok(("", todo!()))
+    ))(args)?;
+    let (input, ex) = block_get(input)?;
+    Ok((input, ast::define_function(name, &b, ex)))
 }
 
 //提取全局变量
