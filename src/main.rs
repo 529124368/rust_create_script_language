@@ -15,10 +15,11 @@ fn main() {
     let programs = r#"
     fn test(a,b)
     {
-        
+        println(12);
     }
     "#;
-    to_ast(programs).unwrap();
+    let (a, b) = to_ast(programs).unwrap();
+    println!("{:?}->{:?}", a, b);
 }
 
 //剔除回车空格
@@ -30,11 +31,29 @@ where
 {
     delimited(multispace0, f, multispace0)
 }
-///     expression_line;
-// fn line(input: &str) -> IResult<&str, Vec<&str>> {
-//     // *terminated multispace0* is important!
-//     terminated(multispace0, multispace0)(input)
-// }
+
+fn loops(input: &str) -> IResult<&str, ast::Expression> {
+    terminated(alt((block_get, println_get)), multispace0)(input)
+}
+
+/// block_expression <- "{" line* "}";
+fn block_get(input: &str) -> IResult<&str, ast::Expression> {
+    let (input, elements) = delimited(tag("{"), del_space(many0(loops)), tag("}"))(input)?;
+    Ok((input, ast::block(elements)))
+}
+
+/// block_expression <- "{" line* "}";
+fn println_get(input: &str) -> IResult<&str, ast::Expression> {
+    let (input, _) = terminated(tag("println"), multispace0)(input)?;
+    let (input, _) = terminated(
+        terminated(
+            delimited(tag("("), del_space(digit1), tag(")")),
+            multispace0,
+        ),
+        tag(";"),
+    )(input)?;
+    Ok((input, ast::ast_println(input)))
+}
 
 //字符串转换成AST(抽象语法树)
 fn to_ast(input: &str) -> IResult<&str, ast::Tree> {

@@ -27,7 +27,7 @@ pub enum Expression {
         expression: Box<Expression>,
     },
     PrintLn {
-        expression: Box<Expression>,
+        expression: String,
     },
 }
 
@@ -47,6 +47,7 @@ pub enum Program {
     },
 }
 
+#[derive(Debug)]
 pub struct Tree {
     pub root: Vec<Program>,
 }
@@ -90,4 +91,10 @@ pub fn difine_global_variable(name: &str, expression: Expression) -> Program {
 }
 pub fn block(elements: Vec<Expression>) -> Expression {
     Expression::Block { elements }
+}
+
+pub fn ast_println(c: &str) -> Expression {
+    Expression::PrintLn {
+        expression: c.into(),
+    }
 }
