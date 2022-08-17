@@ -13,7 +13,7 @@ use nom::{
 
 fn main() {
     let programs = r#"
-    fn test(a,b)
+    fn nishuohsa1(a,b)
     {
         println(12321);
     }
