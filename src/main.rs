@@ -1,25 +1,29 @@
 mod ast;
 use nom::{
-    branch::{alt, permutation},
-    bytes::complete::{is_not, tag, take, take_till, take_until, take_while, take_while_m_n},
-    character::complete::{
-        alpha1, alphanumeric1, anychar, char, digit0, digit1, multispace0, multispace1, one_of,
-    },
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{alpha1, alphanumeric1, digit1, multispace0, multispace1},
     combinator::recognize,
-    multi::{many0, separated_list0, separated_list1},
-    sequence::{delimited, pair, separated_pair, terminated, tuple},
+    multi::{many0, separated_list0},
+    sequence::{delimited, pair, terminated},
     IResult,
 };
 
 fn main() {
     let programs = r#"
-    fn nishuohsa1(a,b)
-    {
+    global wh = 12;
+    fn hell(n,d) {
         println(12321);
     }
+    fn main()
+    {
+        a = 12;
+        println(12321);
+        println(wh);
+    }
     "#;
-    let (a, b) = to_ast(programs).unwrap();
-    println!("{:?}->{:?}", a, b);
+    let (_, b) = to_ast(programs).unwrap();
+    println!("{:#?}", b);
 }
 
 //剔除回车空格
@@ -33,20 +37,35 @@ where
 }
 
 fn loops(input: &str) -> IResult<&str, ast::Expression> {
-    terminated(alt((block_get, println_get)), multispace0)(input)
+    terminated(alt((block_get, println_get, assignment_get)), multispace0)(input)
 }
 
-/// block_expression <- "{" line* "}";
 fn block_get(input: &str) -> IResult<&str, ast::Expression> {
     let (input, elements) = delimited(tag("{"), del_space(many0(loops)), tag("}"))(input)?;
     Ok((input, ast::block(elements)))
 }
 
-/// block_expression <- "{" line* "}";
+fn assignment_get(input: &str) -> IResult<&str, ast::Expression> {
+    let (input, name) = terminated(
+        del_space(recognize(pair(
+            alt((alpha1, tag("_"))),
+            many0(alt((alphanumeric1, tag("_")))),
+        ))),
+        tag("="),
+    )(input)?;
+    let (input, data) = terminated(del_space(digit1), tag(";"))(input)?;
+    Ok((
+        input,
+        ast::assignment(name, ast::integer(data.parse::<i64>().unwrap())),
+    ))
+}
+
 fn println_get(input: &str) -> IResult<&str, ast::Expression> {
     let (input, _) = terminated(tag("println"), multispace0)(input)?;
-    let (input, d) = terminated(delimited(tag("("), del_space(digit1), tag(")")), tag(";"))(input)?;
-    println!("{:?}#{:?}", input, d);
+    let (input, d) = terminated(
+        delimited(tag("("), del_space(alt((digit1, alpha1))), tag(")")),
+        tag(";"),
+    )(input)?;
     Ok((input, ast::ast_println(d)))
 }
 
@@ -88,5 +107,16 @@ fn function_definition(input: &str) -> IResult<&str, ast::Program> {
 fn global_variable_definition(input: &str) -> IResult<&str, ast::Program> {
     let (input, _) = tag("global")(input)?;
     let (input, _) = multispace1(input)?;
-    Ok(("", todo!()))
+    let (input, name) = terminated(
+        del_space(recognize(pair(
+            alt((alpha1, tag("_"))),
+            many0(alt((alphanumeric1, tag("_")))),
+        ))),
+        tag("="),
+    )(input)?;
+    let (input, val) = terminated(del_space(digit1), tag(";"))(input)?;
+    Ok((
+        input,
+        ast::difine_global_variable(name, ast::integer(val.parse::<i64>().unwrap())),
+    ))
 }
