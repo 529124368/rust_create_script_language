@@ -1,4 +1,5 @@
 mod ast;
+mod exec;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -13,8 +14,8 @@ fn main() {
     let programs = r#"
     global wh = 12;
     fn hell(n,d) {
-        w =n;
-        s = d;
+        w =12;
+        s = 13;
         println(12321);
     }
     fn main()
@@ -26,6 +27,7 @@ fn main() {
     "#;
     let (_, b) = to_ast(programs).unwrap();
     println!("{:#?}", b);
+    exec::do_exec(b);
 }
 
 //剔除回车空格
@@ -77,7 +79,7 @@ fn to_ast(input: &str) -> IResult<&str, ast::Tree> {
     Ok((a, ast::Tree { root }))
 }
 
-//switch 方法 or 全局变量
+//方法 + 全局变量
 fn switch_get(input: &str) -> IResult<&str, ast::Program> {
     alt((function_definition, global_variable_definition))(input)
 }
