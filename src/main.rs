@@ -13,6 +13,8 @@ fn main() {
     let programs = r#"
     global wh = 12;
     fn hell(n,d) {
+        w =n;
+        s = d;
         println(12321);
     }
     fn main()
