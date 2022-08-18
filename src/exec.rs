@@ -5,11 +5,25 @@ pub fn do_exec(input: ast::Tree) {
         for i in input.root {
             match i {
                 ast::Program::FunctionDef(fucntion) => {
-                    println!("{}", fucntion.name);
-                    println!("{:?}", fucntion.args);
-                    println!("{:?}", fucntion.content);
+                    // println!("{}", fucntion.name);
+                    // println!("{:?}", fucntion.args);
+                    // println!("{:?}", fucntion.content);
+                    match fucntion.content {
+                        ast::Expression::Block { elements } => {
+                            for i in elements {
+                                match i {
+                                    ast::Expression::PrintLn { expression } => {
+                                        println!("{}", expression)
+                                    }
+                                    _ => print!(""),
+                                }
+                            }
+                        }
+
+                        _ => print!(""),
+                    }
                 }
-                _ => println!(""),
+                _ => print!(""),
             }
         }
     }

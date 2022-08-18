@@ -14,19 +14,16 @@ fn main() {
     let programs = r#"
     global wh = 12;
     fn hell(n,d) {
-        w =12;
-        s = 13;
-        println(12321);
     }
     fn main()
     {
         a = 12;
-        println(12321);
-        println(wh);
+        println(1232421);
+        println(1231);
     }
     "#;
     let (_, b) = to_ast(programs).unwrap();
-    println!("{:#?}", b);
+    //println!("{:#?}", b);
     exec::do_exec(b);
 }
 
