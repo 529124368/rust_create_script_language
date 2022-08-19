@@ -14,7 +14,7 @@ pub enum Expression {
         right: Box<Expression>,
     },
     Zval {
-        Intvalue: i64,
+        float: f64,
     },
     Flg {
         name: String,
@@ -27,7 +27,7 @@ pub enum Expression {
         expression: Box<Expression>,
     },
     PrintLn {
-        expression: String,
+        expression: Box<Expression>,
     },
 }
 
@@ -53,11 +53,11 @@ pub struct Tree {
 }
 
 //方法
-pub fn integer(value: i64) -> Expression {
-    Expression::Zval { Intvalue: value }
+pub fn set_zval(value: f64) -> Expression {
+    Expression::Zval { float: value }
 }
 
-pub fn identifier(name: &str) -> Expression {
+pub fn set_flg(name: &str) -> Expression {
     Expression::Flg { name: name.into() }
 }
 
@@ -93,8 +93,8 @@ pub fn block(elements: Vec<Expression>) -> Expression {
     Expression::Block { elements }
 }
 
-pub fn ast_println(c: &str) -> Expression {
+pub fn ast_println(c: Expression) -> Expression {
     Expression::PrintLn {
-        expression: c.into(),
+        expression: Box::new(c),
     }
 }

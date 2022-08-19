@@ -1,0 +1,12 @@
+    global wh = 1223;
+    global whs = 1.233;
+    fn main()
+    {
+        println(123.2421);
+        println(wh);
+        println(whs);
+         println(123.2421);
+          println(12321);
+           println(123.2421);
+
+    }

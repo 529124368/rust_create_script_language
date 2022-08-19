@@ -1,8 +1,11 @@
 mod ast;
 mod exec;
+
+use std::{env, fs::File, io::Read};
+
 use nom::{
     branch::alt,
-    bytes::complete::tag,
+    bytes::complete::{tag, take_until},
     character::complete::{alpha1, alphanumeric1, digit1, multispace0, multispace1},
     combinator::recognize,
     multi::{many0, separated_list0},
@@ -11,20 +14,15 @@ use nom::{
 };
 
 fn main() {
-    let programs = r#"
-    global wh = 12;
-    fn hell(n,d) {
+    let inputs: Vec<String> = env::args().collect();
+    if inputs.len() >= 2 {
+        let mut f = File::open(&inputs[1]).unwrap();
+        let mut buffer = String::new();
+        f.read_to_string(&mut buffer).unwrap();
+        let (_, b) = to_ast(&buffer).unwrap();
+        println!("{:#?}", b);
+        exec::do_exec(b);
     }
-    fn main()
-    {
-        a = 12;
-        println(1232421);
-        println(1231);
-    }
-    "#;
-    let (_, b) = to_ast(programs).unwrap();
-    //println!("{:#?}", b);
-    exec::do_exec(b);
 }
 
 //剔除回车空格
@@ -57,17 +55,29 @@ fn assignment_get(input: &str) -> IResult<&str, ast::Expression> {
     let (input, data) = terminated(del_space(digit1), tag(";"))(input)?;
     Ok((
         input,
-        ast::assignment(name, ast::integer(data.parse::<i64>().unwrap())),
+        ast::assignment(name, ast::set_zval(data.parse::<f64>().unwrap())),
     ))
 }
 
 fn println_get(input: &str) -> IResult<&str, ast::Expression> {
     let (input, _) = terminated(tag("println"), multispace0)(input)?;
     let (input, d) = terminated(
-        delimited(tag("("), del_space(alt((digit1, alpha1))), tag(")")),
+        delimited(
+            tag("("),
+            del_space(alt((get_float_number, alpha1, digit1))),
+            tag(")"),
+        ),
         tag(";"),
     )(input)?;
-    Ok((input, ast::ast_println(d)))
+    //数字的场合
+    if d.parse::<f64>().is_ok() {
+        Ok((
+            input,
+            ast::ast_println(ast::set_zval(d.parse::<f64>().unwrap())),
+        ))
+    } else {
+        Ok((input, ast::ast_println(ast::set_flg(d))))
+    }
 }
 
 //字符串转换成AST(抽象语法树)
@@ -115,9 +125,30 @@ fn global_variable_definition(input: &str) -> IResult<&str, ast::Program> {
         ))),
         tag("="),
     )(input)?;
-    let (input, val) = terminated(del_space(digit1), tag(";"))(input)?;
+    let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
+    let (_, val) = take_until(";")(val)?;
     Ok((
         input,
-        ast::difine_global_variable(name, ast::integer(val.parse::<i64>().unwrap())),
+        ast::difine_global_variable(name, ast::set_zval(val.parse::<f64>().unwrap())),
     ))
+}
+
+fn get_float_number(input: &str) -> IResult<&str, &str> {
+    let (inptu1, input2) = recognize(delimited(digit1, tag("."), digit1))(input)?;
+    Ok((inptu1, input2))
+}
+
+fn get_float_numbesr(input: &str) -> IResult<&str, &str> {
+    let (inptu1, input2) = recognize(delimited(
+        digit1,
+        tag("."),
+        delimited(multispace0, digit1, tag(";")),
+    ))(input)?;
+    // println!("{};{}", inptu1, input2);
+    Ok((inptu1, input2))
+}
+
+fn get_dig_numbesr(input: &str) -> IResult<&str, &str> {
+    let (inptu1, input2) = recognize(pair(digit1, tag(";")))(input)?;
+    Ok((inptu1, input2))
 }
