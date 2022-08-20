@@ -5,7 +5,7 @@ use std::{env, fs::File, io::Read};
 
 use nom::{
     branch::alt,
-    bytes::complete::{tag, take_until},
+    bytes::complete::{tag, take_until, take_while1},
     character::complete::{alpha1, alphanumeric1, digit1, multispace0, multispace1},
     combinator::recognize,
     multi::{many0, separated_list0},
@@ -13,6 +13,7 @@ use nom::{
     IResult,
 };
 
+static mut FLG: bool = false;
 fn main() {
     let inputs: Vec<String> = env::args().collect();
     if inputs.len() >= 2 {
@@ -56,7 +57,10 @@ fn assignment_get(input: &str) -> IResult<&str, ast::Expression> {
     let (_, val) = take_until(";")(val)?;
     Ok((
         input,
-        ast::assignment(name, ast::set_zval(val.parse::<f64>().unwrap())),
+        ast::assignment(
+            name,
+            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
+        ),
     ))
 }
 
@@ -65,7 +69,7 @@ fn println_get(input: &str) -> IResult<&str, ast::Expression> {
     let (input, d) = terminated(
         delimited(
             tag("("),
-            del_space(alt((get_float_number, alpha1, digit1))),
+            del_space(alt((get_float_number, alpha1, digit1, get_string))),
             tag(")"),
         ),
         tag(";"),
@@ -74,10 +78,21 @@ fn println_get(input: &str) -> IResult<&str, ast::Expression> {
     if d.parse::<f64>().is_ok() {
         Ok((
             input,
-            ast::ast_println(ast::set_zval(d.parse::<f64>().unwrap())),
+            ast::ast_println(ast::set_zval(
+                d.parse::<f64>().unwrap(),
+                "",
+                "number".to_string(),
+            )),
         ))
     } else {
-        Ok((input, ast::ast_println(ast::set_flg(d))))
+        if unsafe { FLG } {
+            Ok((
+                input,
+                ast::ast_println(ast::set_zval(0.0, d, "string".to_string())),
+            ))
+        } else {
+            Ok((input, ast::ast_println(ast::set_flg(d))))
+        }
     }
 }
 
@@ -130,7 +145,10 @@ fn global_variable_definition(input: &str) -> IResult<&str, ast::Program> {
     let (_, val) = take_until(";")(val)?;
     Ok((
         input,
-        ast::difine_global_variable(name, ast::set_zval(val.parse::<f64>().unwrap())),
+        ast::difine_global_variable(
+            name,
+            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
+        ),
     ))
 }
 
@@ -151,4 +169,18 @@ fn get_float_numbesr(input: &str) -> IResult<&str, &str> {
 fn get_dig_numbesr(input: &str) -> IResult<&str, &str> {
     let (inptu1, input2) = recognize(pair(digit1, tag(";")))(input)?;
     Ok((inptu1, input2))
+}
+
+fn get_string(input: &str) -> IResult<&str, &str> {
+    unsafe { FLG = true };
+    let (inptu1, input2) = recognize(delimited(tag("\""), take_while1(te), tag("\"")))(input)?;
+    Ok((inptu1, input2))
+}
+
+fn te(input: char) -> bool {
+    if input == '"' {
+        return false;
+    } else {
+        return true;
+    }
 }

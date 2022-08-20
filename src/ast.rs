@@ -14,7 +14,9 @@ pub enum Expression {
         right: Box<Expression>,
     },
     Zval {
+        type_name: String,
         float: f64,
+        string: String,
     },
     Flg {
         name: String,
@@ -53,8 +55,12 @@ pub struct Tree {
 }
 
 //方法
-pub fn set_zval(value: f64) -> Expression {
-    Expression::Zval { float: value }
+pub fn set_zval(value: f64, vstr: &str, type_name: String) -> Expression {
+    Expression::Zval {
+        float: value,
+        type_name,
+        string: vstr.to_string(),
+    }
 }
 
 pub fn set_flg(name: &str) -> Expression {
