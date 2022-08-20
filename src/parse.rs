@@ -90,6 +90,10 @@ fn println_get(input: &str) -> IResult<&str, ast::Token> {
     } else {
         //字符串的场合
         if unsafe { FLG } {
+            //标志reset
+            unsafe {
+                FLG = false;
+            }
             Ok((
                 input,
                 ast::ast_println(ast::set_zval(
@@ -180,7 +184,7 @@ fn get_params(input: &str) -> IResult<&str, &str> {
     Ok((input1, input2))
 }
 
-pub fn express_get(input: &str) -> IResult<&str, ast::Token> {
+fn express_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
     let (other, input) = take_until(";")(input)?;
 

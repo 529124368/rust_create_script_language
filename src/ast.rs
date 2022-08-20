@@ -64,10 +64,10 @@ pub fn set_flg(name: &str) -> Token {
     Token::Flg { name: name.into() }
 }
 
-pub fn assignment(name: &str, Token: Token) -> Token {
+pub fn assignment(name: &str, token: Token) -> Token {
     Token::Assignment {
         name: name.into(),
-        token: Box::new(Token),
+        token: Box::new(token),
     }
 }
 pub fn add(left: Token, right: Token) -> Token {

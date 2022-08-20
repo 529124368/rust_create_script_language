@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::ast;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct Zvals {
     type_name: String,
     float: f64,
