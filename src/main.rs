@@ -20,7 +20,7 @@ fn main() {
         let mut buffer = String::new();
         f.read_to_string(&mut buffer).unwrap();
         let (_, b) = to_ast(&buffer).unwrap();
-        println!("{:#?}", b);
+        //println!("{:#?}", b);
         exec::do_exec(b);
     }
 }
@@ -52,10 +52,11 @@ fn assignment_get(input: &str) -> IResult<&str, ast::Expression> {
         ))),
         tag("="),
     )(input)?;
-    let (input, data) = terminated(del_space(digit1), tag(";"))(input)?;
+    let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
+    let (_, val) = take_until(";")(val)?;
     Ok((
         input,
-        ast::assignment(name, ast::set_zval(data.parse::<f64>().unwrap())),
+        ast::assignment(name, ast::set_zval(val.parse::<f64>().unwrap())),
     ))
 }
 
@@ -144,7 +145,6 @@ fn get_float_numbesr(input: &str) -> IResult<&str, &str> {
         tag("."),
         delimited(multispace0, digit1, tag(";")),
     ))(input)?;
-    // println!("{};{}", inptu1, input2);
     Ok((inptu1, input2))
 }
 

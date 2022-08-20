@@ -1,39 +1,65 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Deref};
 
-use crate::ast::{self};
+use crate::ast;
+
+fn match_expess(
+    e: ast::Expression,
+    global_params: &HashMap<String, f64>,
+    local_params: &mut HashMap<String, f64>,
+) -> Option<f64> {
+    match e {
+        ast::Expression::Main {
+            opcode,
+            left,
+            right,
+        } => None,
+        ast::Expression::Zval { float } => Some(float),
+        ast::Expression::Flg { name } => {
+            if global_params.get(&name).is_some() {
+                //全局
+                return Some(*global_params.get(&name).unwrap());
+            } else if local_params.get(&name).is_some() {
+                //局部
+                let return_Value = *local_params.get(&name).unwrap();
+                local_params.remove(&name);
+                return Some(return_Value);
+            } else {
+                return None;
+            }
+        }
+        ast::Expression::Block { elements } => None,
+        ast::Expression::Assignment { name, expression } => {
+            let f = match_expess(*expression, &global_params, local_params).unwrap();
+            local_params.insert(name, f);
+            None
+        }
+        ast::Expression::PrintLn { expression } => {
+            match match_expess(*expression, &global_params, local_params) {
+                Some(f) => println!("{}", f),
+                None => print!(""),
+            }
+            None
+        }
+    }
+}
 
 pub fn do_exec(input: ast::Tree) {
-    let mut params_box = HashMap::new();
+    let mut global_params = HashMap::new();
+    let mut local_params = HashMap::new();
     if !input.root.is_empty() {
         for i in input.root {
             match i {
-                ast::Program::FunctionDef(fucntion) => {
-                    // println!("{}", fucntion.name);
-                    // println!("{:?}", fucntion.args);
-                    // println!("{:?}", fucntion.content);
-                    match fucntion.content {
-                        ast::Expression::Block { elements } => {
-                            for i in elements {
-                                match i {
-                                    ast::Expression::PrintLn { expression } => match *expression {
-                                        ast::Expression::Zval { float } => {
-                                            println!("{}", float)
-                                        }
-                                        ast::Expression::Flg { name } => {
-                                            if params_box.get(&name).is_some() {
-                                                println!("{}", params_box.get(&name).unwrap())
-                                            }
-                                        }
-                                        _ => print!(""),
-                                    },
-                                    _ => print!(""),
-                                }
-                            }
+                //方法
+                ast::Program::FunctionDef(fucntion) => match fucntion.content {
+                    ast::Expression::Block { elements } => {
+                        for i in elements {
+                            match_expess(i, &global_params, &mut local_params);
                         }
-
-                        _ => print!(""),
                     }
-                }
+
+                    _ => print!(""),
+                },
+                //全局变量
                 ast::Program::GlobalParmDef {
                     name: n,
                     expression: e,
@@ -42,7 +68,7 @@ pub fn do_exec(input: ast::Tree) {
                         ast::Expression::Zval { float } => float,
                         _ => 0.0,
                     };
-                    params_box.insert(n, re);
+                    global_params.insert(n, re);
                 }
                 _ => print!(""),
             }
