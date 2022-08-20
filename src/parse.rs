@@ -36,7 +36,6 @@ fn loops(input: &str) -> IResult<&str, ast::Token> {
     terminated(alt((block_get, println_get, assignment_get)), multispace0)(input)
 }
 
-//get {}
 fn block_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, elements) = delimited(tag("{"), del_space(many0(loops)), tag("}"))(input)?;
     Ok((input, ast::block(elements)))
@@ -90,20 +89,6 @@ fn println_get(input: &str) -> IResult<&str, ast::Token> {
             Ok((input, ast::ast_println(ast::set_flg(d))))
         }
     }
-}
-
-//提取表达式
-fn express_get(input: &str) -> IResult<&str, ast::Token> {
-    let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
-    let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
-    let (_, val) = take_until(";")(val)?;
-    Ok((
-        input,
-        ast::assignment(
-            name,
-            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
-        ),
-    ))
 }
 
 //提取方法
@@ -180,4 +165,23 @@ fn get_params(input: &str) -> IResult<&str, &str> {
         many0(alt((alphanumeric1, tag("_")))),
     ))(input)?;
     Ok((input1, input2))
+}
+
+fn express_get(input: &str) -> IResult<&str, ast::Token> {
+    let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
+    // let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
+    let (_, val) = take_until(";")(input)?;
+    Ok((
+        input,
+        ast::assignment(
+            name,
+            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
+        ),
+    ))
+}
+
+#[test]
+fn testss() {
+    let (a, b) = express_get("v = 1+2;").unwrap();
+    println!("{}->{:?}", a, b);
 }
