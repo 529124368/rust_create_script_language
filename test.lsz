@@ -1,10 +1,10 @@
     global wh = 122.3;
     fn main()
     {
-        s= 123+13;
         v=122.33;
         println(123.2421);
         println(wh);
+        println(v);
         println(v);
         println("sfsdfs  sdf");
     }

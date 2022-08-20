@@ -10,17 +10,17 @@ struct Zvals {
 }
 
 fn match_expess(
-    e: ast::Expression,
+    e: ast::Token,
     global_params: &HashMap<String, Zvals>,
     local_params: &mut HashMap<String, Zvals>,
 ) -> Option<Zvals> {
     match e {
-        ast::Expression::Main {
+        ast::Token::Express {
             opcode,
             left,
             right,
         } => None,
-        ast::Expression::Zval {
+        ast::Token::Zval {
             float,
             type_name,
             string,
@@ -29,7 +29,7 @@ fn match_expess(
             float,
             string,
         }),
-        ast::Expression::Flg { name } => {
+        ast::Token::Flg { name } => {
             if global_params.get(&name).is_some() {
                 //全局
                 let re = global_params.get(&name).unwrap().clone();
@@ -37,20 +37,19 @@ fn match_expess(
             } else if local_params.get(&name).is_some() {
                 //局部
                 let return_value = local_params.get(&name).unwrap().clone();
-                local_params.remove(&name);
                 return Some(return_value);
             } else {
                 return None;
             }
         }
-        ast::Expression::Block { elements } => None,
-        ast::Expression::Assignment { name, expression } => {
-            let f = match_expess(*expression, &global_params, local_params).unwrap();
+        ast::Token::Block { elements } => None,
+        ast::Token::Assignment { name, token } => {
+            let f = match_expess(*token, &global_params, local_params).unwrap();
             local_params.insert(name, f);
             None
         }
-        ast::Expression::PrintLn { expression } => {
-            match match_expess(*expression, &global_params, local_params) {
+        ast::Token::PrintLn { token } => {
+            match match_expess(*token, &global_params, local_params) {
                 Some(f) => {
                     if f.type_name == "number" {
                         println!("{}", f.float);
@@ -73,7 +72,7 @@ pub fn do_exec(input: ast::Tree) {
             match i {
                 //方法
                 ast::Program::FunctionDef(fucntion) => match fucntion.content {
-                    ast::Expression::Block { elements } => {
+                    ast::Token::Block { elements } => {
                         for i in elements {
                             match_expess(i, &global_params, &mut local_params);
                         }
@@ -82,23 +81,13 @@ pub fn do_exec(input: ast::Tree) {
                     _ => print!(""),
                 },
                 //全局变量
-                ast::Program::GlobalParmDef {
-                    name: n,
-                    expression: e,
-                } => {
-                    let re = match e {
-                        ast::Expression::Zval {
-                            float,
-                            type_name,
-                            string,
-                        } => float,
-                        _ => 0.0,
-                    };
+                ast::Program::GlobalParmDef { name: n, token: e } => {
+                    let a = match_expess(e, &global_params, &mut local_params).unwrap();
                     global_params.insert(
                         n,
                         Zvals {
                             type_name: "number".to_string(),
-                            float: re,
+                            float: a.float,
                             string: "".to_string(),
                         },
                     );

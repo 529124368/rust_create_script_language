@@ -10,6 +10,18 @@ use nom::{
 
 use crate::ast;
 static mut FLG: bool = false;
+
+//字符串转换成AST(抽象语法树)
+pub fn to_ast(input: &str) -> IResult<&str, ast::Tree> {
+    let (a, root) = many0(del_space(switch_get))(input)?;
+    Ok((a, ast::Tree { root }))
+}
+
+//方法 + 全局变量
+fn switch_get(input: &str) -> IResult<&str, ast::Program> {
+    alt((function_definition, global_variable_definition))(input)
+}
+
 //剔除回车空格
 fn del_space<'a, F: 'a, O, E: nom::error::ParseError<&'a str>>(
     f: F,
@@ -20,23 +32,18 @@ where
     delimited(multispace0, f, multispace0)
 }
 
-fn loops(input: &str) -> IResult<&str, ast::Expression> {
+fn loops(input: &str) -> IResult<&str, ast::Token> {
     terminated(alt((block_get, println_get, assignment_get)), multispace0)(input)
 }
 
-fn block_get(input: &str) -> IResult<&str, ast::Expression> {
+//get {}
+fn block_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, elements) = delimited(tag("{"), del_space(many0(loops)), tag("}"))(input)?;
     Ok((input, ast::block(elements)))
 }
 
-fn assignment_get(input: &str) -> IResult<&str, ast::Expression> {
-    let (input, name) = terminated(
-        del_space(recognize(pair(
-            alt((alpha1, tag("_"))),
-            many0(alt((alphanumeric1, tag("_")))),
-        ))),
-        tag("="),
-    )(input)?;
+fn assignment_get(input: &str) -> IResult<&str, ast::Token> {
+    let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
     let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
     let (_, val) = take_until(";")(val)?;
     Ok((
@@ -48,7 +55,7 @@ fn assignment_get(input: &str) -> IResult<&str, ast::Expression> {
     ))
 }
 
-fn println_get(input: &str) -> IResult<&str, ast::Expression> {
+fn println_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, _) = terminated(tag("println"), multispace0)(input)?;
     let (input, d) = terminated(
         delimited(
@@ -69,6 +76,7 @@ fn println_get(input: &str) -> IResult<&str, ast::Expression> {
             )),
         ))
     } else {
+        //字符串的场合
         if unsafe { FLG } {
             Ok((
                 input,
@@ -84,15 +92,18 @@ fn println_get(input: &str) -> IResult<&str, ast::Expression> {
     }
 }
 
-//字符串转换成AST(抽象语法树)
-pub fn to_ast(input: &str) -> IResult<&str, ast::Tree> {
-    let (a, root) = many0(del_space(switch_get))(input)?;
-    Ok((a, ast::Tree { root }))
-}
-
-//方法 + 全局变量
-fn switch_get(input: &str) -> IResult<&str, ast::Program> {
-    alt((function_definition, global_variable_definition))(input)
+//提取表达式
+fn express_get(input: &str) -> IResult<&str, ast::Token> {
+    let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
+    let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
+    let (_, val) = take_until(";")(val)?;
+    Ok((
+        input,
+        ast::assignment(
+            name,
+            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
+        ),
+    ))
 }
 
 //提取方法
@@ -105,13 +116,7 @@ fn function_definition(input: &str) -> IResult<&str, ast::Program> {
     ))(input)?;
     let (input, b) = del_space(delimited(
         tag("("),
-        separated_list0(
-            delimited(multispace0, tag(","), multispace0),
-            recognize(pair(
-                alt((alpha1, tag("_"))),
-                many0(alt((alphanumeric1, tag("_")))),
-            )),
-        ),
+        separated_list0(delimited(multispace0, tag(","), multispace0), get_params),
         tag(")"),
     ))(args)?;
     let (input, ex) = block_get(input)?;
@@ -122,13 +127,7 @@ fn function_definition(input: &str) -> IResult<&str, ast::Program> {
 fn global_variable_definition(input: &str) -> IResult<&str, ast::Program> {
     let (input, _) = tag("global")(input)?;
     let (input, _) = multispace1(input)?;
-    let (input, name) = terminated(
-        del_space(recognize(pair(
-            alt((alpha1, tag("_"))),
-            many0(alt((alphanumeric1, tag("_")))),
-        ))),
-        tag("="),
-    )(input)?;
+    let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
     let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
     let (_, val) = take_until(";")(val)?;
     Ok((
@@ -161,14 +160,24 @@ fn get_dig_numbesr(input: &str) -> IResult<&str, &str> {
 
 fn get_string(input: &str) -> IResult<&str, &str> {
     unsafe { FLG = true };
-    let (inptu1, input2) = recognize(delimited(tag("\""), take_while1(te), tag("\"")))(input)?;
+    let (inptu1, input2) = recognize(delimited(
+        tag("\""),
+        take_while1(|f| {
+            if f == '"' {
+                return false;
+            } else {
+                return true;
+            }
+        }),
+        tag("\""),
+    ))(input)?;
     Ok((inptu1, input2))
 }
 
-fn te(input: char) -> bool {
-    if input == '"' {
-        return false;
-    } else {
-        return true;
-    }
+fn get_params(input: &str) -> IResult<&str, &str> {
+    let (input1, input2) = recognize(pair(
+        alt((alpha1, tag("_"))),
+        many0(alt((alphanumeric1, tag("_")))),
+    ))(input)?;
+    Ok((input1, input2))
 }
