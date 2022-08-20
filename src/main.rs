@@ -11,7 +11,7 @@ fn main() {
         let mut buffer = String::new();
         f.read_to_string(&mut buffer).unwrap();
         let (_, b) = parse::to_ast(&buffer).unwrap();
-        println!("{:#?}", b);
+        //println!("{:#?}", b);
         exec::do_exec(b);
     }
 }
