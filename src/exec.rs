@@ -78,7 +78,7 @@ fn match_expess(
                 return None;
             }
         }
-        ast::Token::Block { elements } => None,
+        ast::Token::Block { elements: _ } => None,
         ast::Token::Assignment { name, token } => {
             let f = match_expess(*token, global_params, local_params).unwrap();
             local_params.insert(name, f);
