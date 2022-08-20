@@ -5,6 +5,7 @@ mod parse;
 use std::{env, fs::File, io::Read};
 
 fn main() {
+    // parse::express_get("v =1+(2-3)+(3+4);").unwrap();
     let inputs: Vec<String> = env::args().collect();
     if inputs.len() >= 2 {
         let mut f = File::open(&inputs[1]).unwrap();

@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::{tag, take_until, take_while1},
     character::complete::{alpha1, alphanumeric1, digit1, multispace0, multispace1},
     combinator::recognize,
-    multi::{many0, separated_list0},
+    multi::{fold_many0, many0, separated_list0},
     sequence::{delimited, pair, terminated},
     IResult,
 };
@@ -32,8 +32,21 @@ where
     delimited(multispace0, f, multispace0)
 }
 
+//剔除回车空格
+fn del_block<'a, F: 'a, O, E: nom::error::ParseError<&'a str>>(
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
+where
+    F: FnMut(&'a str) -> IResult<&'a str, O, E>,
+{
+    delimited(tag("("), f, tag(")"))
+}
+
 fn loops(input: &str) -> IResult<&str, ast::Token> {
-    terminated(alt((block_get, println_get, assignment_get)), multispace0)(input)
+    terminated(
+        alt((block_get, println_get, assignment_get, express_get)),
+        multispace0,
+    )(input)
 }
 
 fn block_get(input: &str) -> IResult<&str, ast::Token> {
@@ -167,21 +180,38 @@ fn get_params(input: &str) -> IResult<&str, &str> {
     Ok((input1, input2))
 }
 
-fn express_get(input: &str) -> IResult<&str, ast::Token> {
+pub fn express_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
-    // let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
-    let (_, val) = take_until(";")(input)?;
-    Ok((
-        input,
-        ast::assignment(
-            name,
-            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
-        ),
-    ))
+    let (other, input) = take_until(";")(input)?;
+
+    let (_, res) = calcal_get(input)?;
+    let (other, _) = tag(";")(other)?;
+    Ok((other, ast::assignment(name, res)))
 }
 
-#[test]
-fn testss() {
-    let (a, b) = express_get("v = 1+2;").unwrap();
-    println!("{}->{:?}", a, b);
+fn get_tt(input: &str) -> IResult<&str, ast::Token> {
+    alt((del_block(calcal_get), set_value))(input)
+}
+
+fn calcal_get(input: &str) -> IResult<&str, ast::Token> {
+    let (input, lefthandle) = get_tt(input)?;
+
+    let result = fold_many0(
+        pair(del_space(alt((tag("+"), tag("-")))), get_tt),
+        || lefthandle.clone(),
+        |acc, (operator, right_operand)| match operator {
+            "+" => ast::add(acc, right_operand),
+            "-" => ast::subtract(acc, right_operand),
+            _ => unreachable!(),
+        },
+    )(input)?;
+    Ok(result)
+}
+
+fn set_value(input: &str) -> IResult<&str, ast::Token> {
+    let (a, b) = alt((digit1, get_float_number))(input)?;
+    Ok((
+        a,
+        ast::set_zval(b.parse::<f64>().unwrap(), "", "number".to_string()),
+    ))
 }

@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Opcode {
     Add,
     Subtract,
@@ -6,7 +6,7 @@ pub enum Opcode {
     Divide,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Token {
     Express {
         opcode: Opcode,

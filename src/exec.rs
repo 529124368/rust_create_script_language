@@ -19,7 +19,35 @@ fn match_expess(
             opcode,
             left,
             right,
-        } => None,
+        } => {
+            if opcode == ast::Opcode::Add {
+                let letf_num = match_expess(*left, global_params, local_params)
+                    .unwrap()
+                    .float;
+                let right_num = match_expess(*right, global_params, local_params)
+                    .unwrap()
+                    .float;
+                return Some(Zvals {
+                    type_name: "number".to_string(),
+                    float: letf_num + right_num,
+                    string: "".to_string(),
+                });
+            }
+            if opcode == ast::Opcode::Subtract {
+                let letf_num = match_expess(*left, global_params, local_params)
+                    .unwrap()
+                    .float;
+                let right_num = match_expess(*right, global_params, local_params)
+                    .unwrap()
+                    .float;
+                return Some(Zvals {
+                    type_name: "number".to_string(),
+                    float: letf_num - right_num,
+                    string: "".to_string(),
+                });
+            }
+            None
+        }
         ast::Token::Zval {
             float,
             type_name,
@@ -44,12 +72,12 @@ fn match_expess(
         }
         ast::Token::Block { elements } => None,
         ast::Token::Assignment { name, token } => {
-            let f = match_expess(*token, &global_params, local_params).unwrap();
+            let f = match_expess(*token, global_params, local_params).unwrap();
             local_params.insert(name, f);
             None
         }
         ast::Token::PrintLn { token } => {
-            match match_expess(*token, &global_params, local_params) {
+            match match_expess(*token, global_params, local_params) {
                 Some(f) => {
                     if f.type_name == "number" {
                         println!("{}", f.float);
