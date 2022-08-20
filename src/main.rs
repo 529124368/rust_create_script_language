@@ -88,7 +88,11 @@ fn println_get(input: &str) -> IResult<&str, ast::Expression> {
         if unsafe { FLG } {
             Ok((
                 input,
-                ast::ast_println(ast::set_zval(0.0, d, "string".to_string())),
+                ast::ast_println(ast::set_zval(
+                    0.0,
+                    &d.replace('"', ""),
+                    "string".to_string(),
+                )),
             ))
         } else {
             Ok((input, ast::ast_println(ast::set_flg(d))))

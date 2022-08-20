@@ -103,7 +103,6 @@ pub fn do_exec(input: ast::Tree) {
                         },
                     );
                 }
-                _ => print!(""),
             }
         }
     }
