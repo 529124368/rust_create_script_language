@@ -197,11 +197,16 @@ fn calcal_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, lefthandle) = get_tt(input)?;
 
     let result = fold_many0(
-        pair(del_space(alt((tag("+"), tag("-")))), get_tt),
+        pair(
+            del_space(alt((tag("+"), tag("-"), tag("*"), tag("/")))),
+            get_tt,
+        ),
         || lefthandle.clone(),
         |acc, (operator, right_operand)| match operator {
             "+" => ast::add(acc, right_operand),
             "-" => ast::subtract(acc, right_operand),
+            "*" => ast::multiply(acc, right_operand),
+            "/" => ast::divide(acc, right_operand),
             _ => unreachable!(),
         },
     )(input)?;

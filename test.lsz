@@ -5,6 +5,8 @@
         println(s);
         s=5-3+(3+4);
         println(s);
+        s=5*3 / (3+4);
+        println(s);
         v=122.33;
         println(123.2421);
         println(wh);

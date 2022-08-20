@@ -20,13 +20,13 @@ fn match_expess(
             left,
             right,
         } => {
+            let letf_num = match_expess(*left, global_params, local_params)
+                .unwrap()
+                .float;
+            let right_num = match_expess(*right, global_params, local_params)
+                .unwrap()
+                .float;
             if opcode == ast::Opcode::Add {
-                let letf_num = match_expess(*left, global_params, local_params)
-                    .unwrap()
-                    .float;
-                let right_num = match_expess(*right, global_params, local_params)
-                    .unwrap()
-                    .float;
                 return Some(Zvals {
                     type_name: "number".to_string(),
                     float: letf_num + right_num,
@@ -34,15 +34,23 @@ fn match_expess(
                 });
             }
             if opcode == ast::Opcode::Subtract {
-                let letf_num = match_expess(*left, global_params, local_params)
-                    .unwrap()
-                    .float;
-                let right_num = match_expess(*right, global_params, local_params)
-                    .unwrap()
-                    .float;
                 return Some(Zvals {
                     type_name: "number".to_string(),
                     float: letf_num - right_num,
+                    string: "".to_string(),
+                });
+            }
+            if opcode == ast::Opcode::Divide {
+                return Some(Zvals {
+                    type_name: "number".to_string(),
+                    float: letf_num / right_num,
+                    string: "".to_string(),
+                });
+            }
+            if opcode == ast::Opcode::Multiply {
+                return Some(Zvals {
+                    type_name: "number".to_string(),
+                    float: letf_num * right_num,
                     string: "".to_string(),
                 });
             }
