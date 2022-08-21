@@ -6,11 +6,18 @@
 例子：
 ```
     global wh = 122.3;
+    fn test() {
+        println("你说什么 sfsfs");
+    }
     fn main()
     {
-        s=5+(2-3)+(3+4);
+        s = 1 +2-3;
+        println(s);
+        println("hello world !!!");
+        s=7+(2-3)+(3+4);
         println(s);
         s=5-3+(3+4);
+        test();
         println(s);
         s=5*3 / (3+4);
         println(s);
@@ -18,7 +25,7 @@
         println(123.2421);
         println(wh);
         println(v);
-        println("sfsdfs  sdf");
+        println("你好吗 兄弟们");
     }
 ```    
 # AST 抽象语法树 格式
@@ -35,10 +42,56 @@ Tree {
         },
         FunctionDef(
             Function {
+                name: "test",
+                args: [],
+                content: Block {
+                    elements: [
+                        PrintLn {
+                            token: Zval {
+                                type_name: String,
+                                float: 0.0,
+                                string: "你说什么 sfsfs",
+                            },
+                        },
+                    ],
+                },
+            },
+        ),
+        FunctionDef(
+            Function {
                 name: "main",
                 args: [],
                 content: Block {
                     elements: [
+                        Assignment {
+                            name: "s",
+                            token: Express {
+                                opcode: Subtract,
+                                left: Express {
+                                    opcode: Add,
+                                    left: Zval {
+                                        type_name: Number,
+                                        float: 1.0,
+                                        string: "",
+                                    },
+                                    right: Zval {
+                                        type_name: Number,
+                                        float: 2.0,
+                                        string: "",
+                                    },
+                                },
+                                right: Zval {
+                                    type_name: Number,
+                                    float: 3.0,
+                                    string: "",
+                                },
+                            },
+                        },
+                        PrintLn {
+                            token: Flg {
+                                name: "s",
+                            },
+                        },
                         PrintLn {
                             token: Zval {
                                 type_name: String,
@@ -122,6 +175,10 @@ Tree {
                                     },
                                 },
                             },
+                        },
+                        CallFunction {
+                            name: "test",
+                            args: [],
                         },
                         PrintLn {
                             token: Flg {
@@ -211,10 +268,11 @@ Tree {
   2. 加减乘除 + - * / 
   3. 换行打印 println（）
   4. 字符串定义  " "
+  5. 无参数 方法调用。（新支持）
   
   
  ### TODO
-  1. 方法调用
+  1. 带参数方法调用
   2. 类定义
   3. 错误提示
   4. 循环遍历
