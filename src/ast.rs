@@ -37,22 +37,26 @@ pub enum Token {
     PrintLn {
         token: Box<Token>,
     },
+    CallFunction {
+        name: String,
+        args: Vec<String>,
+    },
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Function {
     pub name: String,
     pub args: Vec<String>,
     pub content: Token,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Program {
     FunctionDef(Function),
     GlobalParmDef { name: String, token: Token },
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Tree {
     pub root: Vec<Program>,
 }
@@ -116,7 +120,14 @@ pub fn define_function(name: &str, args: &[&str], content: Token) -> Program {
     })
 }
 
-pub fn difine_global_variable(name: &str, token: Token) -> Program {
+pub fn define_call_function(name: &str, args: &[&str]) -> Token {
+    Token::CallFunction {
+        name: name.to_string(),
+        args: args.iter().map(|arg| arg.to_string()).collect(),
+    }
+}
+
+pub fn define_global_variable(name: &str, token: Token) -> Program {
     Program::GlobalParmDef {
         name: name.to_string(),
         token,

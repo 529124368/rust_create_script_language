@@ -44,7 +44,13 @@ where
 
 fn loops(input: &str) -> IResult<&str, ast::Token> {
     terminated(
-        alt((block_get, println_get, assignment_get, express_get)),
+        alt((
+            block_get,
+            println_get,
+            assignment_get,
+            express_get,
+            call_function,
+        )),
         multispace0,
     )(input)
 }
@@ -109,14 +115,24 @@ fn println_get(input: &str) -> IResult<&str, ast::Token> {
     }
 }
 
+pub fn call_function(input: &str) -> IResult<&str, ast::Token> {
+    let (input, name) = del_space(get_params)(input)?;
+    let (input, args) = del_space(terminated(
+        delimited(
+            tag("("),
+            separated_list0(delimited(multispace0, tag(","), multispace0), get_params),
+            tag(")"),
+        ),
+        tag(";"),
+    ))(input)?;
+    Ok((input, ast::define_call_function(name, &args)))
+}
+
 //提取方法
 fn function_definition(input: &str) -> IResult<&str, ast::Program> {
     let (input, _) = tag("fn")(input)?;
     let (input, _) = multispace1(input)?;
-    let (args, name) = recognize(pair(
-        alt((alpha1, tag("_"))),
-        many0(alt((alphanumeric1, tag("_")))),
-    ))(input)?;
+    let (args, name) = get_params(input)?;
     let (input, b) = del_space(delimited(
         tag("("),
         separated_list0(delimited(multispace0, tag(","), multispace0), get_params),
@@ -137,7 +153,7 @@ fn global_variable_definition(input: &str) -> IResult<&str, ast::Program> {
     let (_, val) = take_until(";")(val)?;
     Ok((
         input,
-        ast::difine_global_variable(
+        ast::define_global_variable(
             name,
             ast::set_zval(val.parse::<f64>().unwrap(), "", ast::ValueType::Number),
         ),

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast;
+use crate::ast::{self, Program};
 
 #[derive(Debug, Clone)]
 struct Zvals {
@@ -13,6 +13,7 @@ fn match_expess(
     e: ast::Token,
     global_params: &HashMap<String, Zvals>,
     local_params: &mut HashMap<String, Zvals>,
+    root: Vec<Program>,
 ) -> Option<Zvals> {
     match e {
         ast::Token::Express {
@@ -20,10 +21,12 @@ fn match_expess(
             left,
             right,
         } => {
-            let letf_num = match_expess(*left, global_params, local_params)
+            let root_copy = root.clone();
+            let letf_num = match_expess(*left, global_params, local_params, root_copy)
                 .unwrap()
                 .float;
-            let right_num = match_expess(*right, global_params, local_params)
+            let root_copy = root.clone();
+            let right_num = match_expess(*right, global_params, local_params, root_copy)
                 .unwrap()
                 .float;
             if opcode == ast::Opcode::Add {
@@ -80,12 +83,12 @@ fn match_expess(
         }
         ast::Token::Block { elements: _ } => None,
         ast::Token::Assignment { name, token } => {
-            let f = match_expess(*token, global_params, local_params).unwrap();
+            let f = match_expess(*token, global_params, local_params, root).unwrap();
             local_params.insert(name, f);
             None
         }
         ast::Token::PrintLn { token } => {
-            match match_expess(*token, global_params, local_params) {
+            match match_expess(*token, global_params, local_params, root) {
                 Some(f) => {
                     if f.type_name == ast::ValueType::Number {
                         println!("{}", f.float);
@@ -97,27 +100,66 @@ fn match_expess(
             }
             None
         }
+        ast::Token::CallFunction { name, args: _ } => {
+            let root_copy = root.clone();
+            let root_copy1 = root.clone();
+            for i in root_copy {
+                match i {
+                    ast::Program::FunctionDef(fucntion) => {
+                        if fucntion.name == name && fucntion.name != "main" {
+                            match fucntion.content {
+                                ast::Token::Block { elements } => {
+                                    for i in elements {
+                                        match_expess(
+                                            i,
+                                            global_params,
+                                            local_params,
+                                            root_copy1.clone(),
+                                        );
+                                    }
+                                }
+                                _ => print!(""),
+                            }
+                        }
+                    }
+                    _ => print!(""),
+                }
+            }
+            None
+        }
     }
 }
 
 pub fn do_exec(input: ast::Tree) {
     let mut global_params: HashMap<String, Zvals> = HashMap::new();
     let mut local_params: HashMap<String, Zvals> = HashMap::new();
+    let root_copt = input.root.clone();
+    let root_copts = input.root.clone();
     if !input.root.is_empty() {
         for i in input.root {
             match i {
                 //方法
-                ast::Program::FunctionDef(fucntion) => match fucntion.content {
-                    ast::Token::Block { elements } => {
-                        for i in elements {
-                            match_expess(i, &global_params, &mut local_params);
+                ast::Program::FunctionDef(fucntion) => {
+                    if fucntion.name == "main" {
+                        match fucntion.content {
+                            ast::Token::Block { elements } => {
+                                for i in elements {
+                                    match_expess(
+                                        i,
+                                        &global_params,
+                                        &mut local_params,
+                                        root_copts.clone(),
+                                    );
+                                }
+                            }
+                            _ => unreachable!(),
                         }
                     }
-                    _ => unreachable!(),
-                },
+                }
                 //全局变量
                 ast::Program::GlobalParmDef { name: n, token: e } => {
-                    let a = match_expess(e, &global_params, &mut local_params).unwrap();
+                    let a = match_expess(e, &global_params, &mut local_params, root_copt.clone())
+                        .unwrap();
                     global_params.insert(
                         n,
                         Zvals {
