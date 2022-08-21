@@ -113,8 +113,7 @@ pub fn do_exec(input: ast::Tree) {
                             match_expess(i, &global_params, &mut local_params);
                         }
                     }
-
-                    _ => print!(""),
+                    _ => unreachable!(),
                 },
                 //全局变量
                 ast::Program::GlobalParmDef { name: n, token: e } => {

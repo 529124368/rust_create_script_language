@@ -1,7 +1,7 @@
     global wh = 122.3;
     fn main()
     {
-        println("sdfsf esfewfw");
+        println("hello world !!!");
         s=7+(2-3)+(3+4);
         println(s);
         s=5-3+(3+4);
@@ -12,5 +12,5 @@
         println(123.2421);
         println(wh);
         println(v);
-        println("sfsdfs  sdf");
+        println("你好吗 兄弟们");
     }
