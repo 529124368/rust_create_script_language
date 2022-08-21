@@ -56,7 +56,8 @@ fn block_get(input: &str) -> IResult<&str, ast::Token> {
 
 fn assignment_get(input: &str) -> IResult<&str, ast::Token> {
     let (input, name) = terminated(del_space(get_params), tag("="))(input)?;
-    let (input, val) = del_space(alt((get_dig_numbesr, get_float_numbesr)))(input)?;
+
+    let (input, val) = alt((get_dig_numbesr, get_float_numbesr))(input)?;
     let (_, val) = take_until(";")(val)?;
     Ok((
         input,
@@ -121,7 +122,9 @@ fn function_definition(input: &str) -> IResult<&str, ast::Program> {
         separated_list0(delimited(multispace0, tag(","), multispace0), get_params),
         tag(")"),
     ))(args)?;
+
     let (input, ex) = block_get(input)?;
+
     Ok((input, ast::define_function(name, &b, ex)))
 }
 
@@ -218,7 +221,7 @@ fn calcal_get(input: &str) -> IResult<&str, ast::Token> {
 }
 
 fn set_value(input: &str) -> IResult<&str, ast::Token> {
-    let (a, b) = alt((digit1, get_float_number))(input)?;
+    let (a, b) = del_space(alt((digit1, get_float_number)))(input)?;
     Ok((
         a,
         ast::set_zval(b.parse::<f64>().unwrap(), "", ast::ValueType::Number),

@@ -1,6 +1,8 @@
     global wh = 122.3;
     fn main()
     {
+        s = 1 +2-3;
+        println(s);
         println("hello world !!!");
         s=7+(2-3)+(3+4);
         println(s);
