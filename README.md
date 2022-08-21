@@ -28,8 +28,8 @@ Tree {
         GlobalParmDef {
             name: "wh",
             token: Zval {
-                type_name: "number",
-                float: 122.3,       
+                type_name: Number,
+                float: 122.3,
                 string: "",
             },
         },
@@ -41,9 +41,9 @@ Tree {
                     elements: [
                         PrintLn {
                             token: Zval {
-                                type_name: "string",
+                                type_name: String,
                                 float: 0.0,
-                                string: "sdfsf esfewfw",
+                                string: "hello world !!!",
                             },
                         },
                         Assignment {
@@ -53,19 +53,19 @@ Tree {
                                 left: Express {
                                     opcode: Add,
                                     left: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 7.0,
                                         string: "",
                                     },
                                     right: Express {
                                         opcode: Subtract,
                                         left: Zval {
-                                            type_name: "number",
+                                            type_name: Number,
                                             float: 2.0,
                                             string: "",
                                         },
                                         right: Zval {
-                                            type_name: "number",
+                                            type_name: Number,
                                             float: 3.0,
                                             string: "",
                                         },
@@ -74,12 +74,12 @@ Tree {
                                 right: Express {
                                     opcode: Add,
                                     left: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 3.0,
                                         string: "",
                                     },
                                     right: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 4.0,
                                         string: "",
                                     },
@@ -98,12 +98,12 @@ Tree {
                                 left: Express {
                                     opcode: Subtract,
                                     left: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 5.0,
                                         string: "",
                                     },
                                     right: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 3.0,
                                         string: "",
                                     },
@@ -111,12 +111,12 @@ Tree {
                                 right: Express {
                                     opcode: Add,
                                     left: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 3.0,
                                         string: "",
                                     },
                                     right: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 4.0,
                                         string: "",
                                     },
@@ -135,12 +135,12 @@ Tree {
                                 left: Express {
                                     opcode: Multiply,
                                     left: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 5.0,
                                         string: "",
                                     },
                                     right: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 3.0,
                                         string: "",
                                     },
@@ -148,12 +148,12 @@ Tree {
                                 right: Express {
                                     opcode: Add,
                                     left: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 3.0,
                                         string: "",
                                     },
                                     right: Zval {
-                                        type_name: "number",
+                                        type_name: Number,
                                         float: 4.0,
                                         string: "",
                                     },
@@ -168,14 +168,14 @@ Tree {
                         Assignment {
                             name: "v",
                             token: Zval {
-                                type_name: "number",
+                                type_name: Number,
                                 float: 122.33,
                                 string: "",
                             },
                         },
                         PrintLn {
                             token: Zval {
-                                type_name: "number",
+                                type_name: Number,
                                 float: 123.2421,
                                 string: "",
                             },
@@ -192,9 +192,9 @@ Tree {
                         },
                         PrintLn {
                             token: Zval {
-                                type_name: "string",
+                                type_name: String,
                                 float: 0.0,
-                                string: "sfsdfs  sdf",
+                                string: "你好吗 兄弟们",
                             },
                         },
                     ],
