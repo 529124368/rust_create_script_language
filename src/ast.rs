@@ -6,6 +6,12 @@ pub enum Opcode {
     Divide,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum ValueType {
+    Number,
+    String,
+}
+
 #[derive(Debug, Clone)]
 pub enum Token {
     Express {
@@ -14,7 +20,7 @@ pub enum Token {
         right: Box<Token>,
     },
     Zval {
-        type_name: String,
+        type_name: ValueType,
         float: f64,
         string: String,
     },
@@ -52,7 +58,7 @@ pub struct Tree {
 }
 
 //方法
-pub fn set_zval(value: f64, vstr: &str, type_name: String) -> Token {
+pub fn set_zval(value: f64, vstr: &str, type_name: ValueType) -> Token {
     Token::Zval {
         float: value,
         type_name,

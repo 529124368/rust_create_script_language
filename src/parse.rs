@@ -62,7 +62,7 @@ fn assignment_get(input: &str) -> IResult<&str, ast::Token> {
         input,
         ast::assignment(
             name,
-            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
+            ast::set_zval(val.parse::<f64>().unwrap(), "", ast::ValueType::Number),
         ),
     ))
 }
@@ -84,7 +84,7 @@ fn println_get(input: &str) -> IResult<&str, ast::Token> {
             ast::ast_println(ast::set_zval(
                 d.parse::<f64>().unwrap(),
                 "",
-                "number".to_string(),
+                ast::ValueType::Number,
             )),
         ))
     } else {
@@ -99,7 +99,7 @@ fn println_get(input: &str) -> IResult<&str, ast::Token> {
                 ast::ast_println(ast::set_zval(
                     0.0,
                     &d.replace('"', ""),
-                    "string".to_string(),
+                    ast::ValueType::String,
                 )),
             ))
         } else {
@@ -136,7 +136,7 @@ fn global_variable_definition(input: &str) -> IResult<&str, ast::Program> {
         input,
         ast::difine_global_variable(
             name,
-            ast::set_zval(val.parse::<f64>().unwrap(), "", "number".to_string()),
+            ast::set_zval(val.parse::<f64>().unwrap(), "", ast::ValueType::Number),
         ),
     ))
 }
@@ -221,6 +221,6 @@ fn set_value(input: &str) -> IResult<&str, ast::Token> {
     let (a, b) = alt((digit1, get_float_number))(input)?;
     Ok((
         a,
-        ast::set_zval(b.parse::<f64>().unwrap(), "", "number".to_string()),
+        ast::set_zval(b.parse::<f64>().unwrap(), "", ast::ValueType::Number),
     ))
 }

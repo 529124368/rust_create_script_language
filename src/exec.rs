@@ -4,7 +4,7 @@ use crate::ast;
 
 #[derive(Debug, Clone)]
 struct Zvals {
-    type_name: String,
+    type_name: ast::ValueType,
     float: f64,
     string: String,
 }
@@ -28,28 +28,28 @@ fn match_expess(
                 .float;
             if opcode == ast::Opcode::Add {
                 return Some(Zvals {
-                    type_name: "number".to_string(),
+                    type_name: ast::ValueType::Number,
                     float: letf_num + right_num,
                     string: "".to_string(),
                 });
             }
             if opcode == ast::Opcode::Subtract {
                 return Some(Zvals {
-                    type_name: "number".to_string(),
+                    type_name: ast::ValueType::Number,
                     float: letf_num - right_num,
                     string: "".to_string(),
                 });
             }
             if opcode == ast::Opcode::Divide {
                 return Some(Zvals {
-                    type_name: "number".to_string(),
+                    type_name: ast::ValueType::Number,
                     float: letf_num / right_num,
                     string: "".to_string(),
                 });
             }
             if opcode == ast::Opcode::Multiply {
                 return Some(Zvals {
-                    type_name: "number".to_string(),
+                    type_name: ast::ValueType::Number,
                     float: letf_num * right_num,
                     string: "".to_string(),
                 });
@@ -87,7 +87,7 @@ fn match_expess(
         ast::Token::PrintLn { token } => {
             match match_expess(*token, global_params, local_params) {
                 Some(f) => {
-                    if f.type_name == "number" {
+                    if f.type_name == ast::ValueType::Number {
                         println!("{}", f.float);
                     } else {
                         println!("{}", f.string);
@@ -122,7 +122,7 @@ pub fn do_exec(input: ast::Tree) {
                     global_params.insert(
                         n,
                         Zvals {
-                            type_name: "number".to_string(),
+                            type_name: ast::ValueType::Number,
                             float: a.float,
                             string: "".to_string(),
                         },
